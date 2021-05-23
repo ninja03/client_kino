@@ -26,15 +26,16 @@ for (let i = 0; i < battleNum; i++) {
   game.attachPlayer(new Player(0));
   game.attachPlayer(new Player(1));
   while (!game.ending) {
+    let info = game.toJSON();
     // console.log("game.turn", game.turn)
-    const kact = ai1.think(game, 0);
+    const kact = ai1.think(info, 0);
     /*
     if (battleNum == 1) {
       console.log("final act", kact);
     }
     */
     game.players[0].setActions(kact);
-    const eact = ai2.think(game, 1);
+    const eact = ai2.think(info, 1);
     game.players[1].setActions(eact);
     game.nextTurn();
     /*

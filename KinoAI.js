@@ -2,6 +2,7 @@ import { Action, Board, Field, Kakomimasu } from "./Kakomimasu.js";
 import util from "./util.js";
 import {DIR} from "./KakomimasuClient.js";
 import {BeamSearch} from "./BeamSearch.js";
+import { KinoUtil } from "./KinoUtil.js";
 
 class KinoAI {
   constructor() {
@@ -11,7 +12,8 @@ class KinoAI {
     this.offseton = false;
   }
 
-  think(game, pid) {
+  think(info, pid) {
+    let game = KinoUtil.info2Game(info);
     // ポイントの高い順ソート
     let pntall;
     if (this.putbson) {

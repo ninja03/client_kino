@@ -1,4 +1,4 @@
-import {Action, Board, Field, Kakomimasu} from "./Kakomimasu.js";
+import { Game, Action, Board, Field, Kakomimasu} from "./Kakomimasu.js";
 import {Action as ActionC, KakomimasuClient} from "./KakomimasuClient.js";
 
 class KinoUtil {
@@ -34,15 +34,7 @@ class KinoUtil {
   }
   static info2Game(info) {
     const kkmm = new Kakomimasu();
-    const game = kkmm.createGame(
-      new Board(
-        info.board.width,
-        info.board.height,
-        info.board.points,
-        info.board.nAgent
-      ),
-      info.totalTurn
-    );
+    const game = new Game(info.board);
     game.uuid = info.gameId;
     game.startedAtUnixTime = info.startedAtUnixTime;
     game.nextTurnUnixTime = info.nextTurnUnixTime;
