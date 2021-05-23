@@ -1,5 +1,13 @@
+import { parse } from "https://deno.land/std@0.84.0/flags/mod.ts";
+const args = parse(Deno.args);
+
+const cl = (...param) => {
+  if (!args.nolog) console.log(...param);
+}
+
+
 // const defaulthost = "http://localhost:8880/api";
-const defaulthost = "https://kakomimasu.sabae.club/api";
+const defaulthost = "https://practice.kakomimasu.website/api";
 let host = defaulthost;
 const setHost = (s) => {
   host = s || defaulthost;
@@ -34,7 +42,7 @@ async function userRegist(screenName, name, password) {
       body: JSON.stringify(sendJson),
     },
   )).json();
-  //console.log(reqJson, "userRegist");
+  //cl(reqJson, "userRegist");
   return reqJson;
 }
 
@@ -42,7 +50,7 @@ async function userShow(identifier) {
   const reqJson = await (await fetch(
     `${host}/users/show/${identifier}`,
   )).json();
-  //console.log(reqJson, "userShow");
+  //cl(reqJson, "userShow");
   return reqJson;
 }
 
@@ -60,12 +68,11 @@ async function userDelete({ name = "", id = "", password = "" }) {
       body: JSON.stringify(sendJson),
     },
   );
-  //console.log(res, "userDelete");
+  //cl(res, "userDelete");
   return res;
 }
 
-async function match({ name = "", id = "", password = "", spec = "" }) {
-  const sendJson = { name: name, id: id, password: password, spec: spec };
+async function match(sendJson) {
   const resJson = await (await fetch(
     `${host}/match`,
     {
@@ -74,21 +81,21 @@ async function match({ name = "", id = "", password = "", spec = "" }) {
       body: JSON.stringify(sendJson),
     },
   )).json();
-  //console.log(resJson, "match");
+  //cl(resJson, "match");
   return resJson; //[reqJson.accessToken, reqJson.roomId];
 }
 
 async function getGameInfo(roomid) {
   const res = await (await fetch(`${host}/match/${roomid}`)).json();
   if (res.error) {
-    console.log("error! ", res);
+    cl("error! ", res);
     Deno.exit(0);
   }
   return res;
 }
 
 async function setAction(roomid, playerid, actions) {
-  console.log("setAction", JSON.stringify(actions));
+  cl("setAction", JSON.stringify(actions));
 
   const sendJson = {
     time: Math.floor(new Date().getTime() / 1000),
@@ -105,13 +112,13 @@ async function setAction(roomid, playerid, actions) {
       body: JSON.stringify(sendJson),
     },
   )).json();
-  console.log(resJson, "setAction");
+  //cl(resJson, "setAction");
   return resJson;
 }
 
 function diffTime(unixTime) {
   const dt = unixTime * 1000 - new Date().getTime();
-  console.log("diffTime", dt);
+  cl("diffTime", dt);
   return dt;
 }
 
@@ -126,4 +133,6 @@ export {
   setAction,
   diffTime,
   setHost,
+  cl,
+  args
 };

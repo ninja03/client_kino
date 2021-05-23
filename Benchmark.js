@@ -1,9 +1,7 @@
-import {KinoUtil} from "./KinoUtil.js";
-import {KinoAI} from "./KinoAI.js";
-import {A4AI} from "./A4AI.js";
-
-const logname = "./log/5c025b28-a686-4cc4-ba89-98fd9b383855-player1.log";
-const infos = JSON.parse(Deno.readTextFileSync(logname));
+import { KinoUtil } from "./KinoUtil.js";
+import { KinoAI } from "./KinoAI.js";
+import { A4AI } from "./A4AI.js";
+import { Board, Game, Player } from "./Kakomimasu.js";
 
 let ai1 = new KinoAI();
 ai1.bs.naname = false;
@@ -20,8 +18,13 @@ ai2.offseton = true;
 let win = [0, 0];
 let battlePoint = [0, 0];
 const battleNum = 10;
+
+let board = new Board(JSON.parse(Deno.readTextFileSync("board/A-1.json")));
+
 for (let i = 0; i < battleNum; i++) {
-  const game = KinoUtil.info2Game(infos[0]);
+  const game = new Game(board);
+  game.attachPlayer(new Player(0));
+  game.attachPlayer(new Player(1));
   while (!game.ending) {
     // console.log("game.turn", game.turn)
     const kact = ai1.think(game, 0);

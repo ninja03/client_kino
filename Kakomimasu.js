@@ -7,9 +7,10 @@ class Board {
       this.h = w.height;
       this.points = w.points;
       this.nagent = w.nagent;
-      this.nturn = w.nturn;
+      this.nturn = w.nturn || 30;
       this.nsec = w.nsec || 3;
       this.nplayer = w.nplayer || 2;
+      this.name = w.name;
     } else {
       this.w = w;
       this.h = h;
@@ -22,11 +23,22 @@ class Board {
     if (this.points.length !== this.w * this.h) {
       throw new Error("points.length must be " + this.w * this.h);
     }
+    //console.log("board", this, this.name);
     // if (!(w >= 12 && w <= 24 && h >= 12 && h <= 24)) { throw new Error("w and h 12-24"); }
+  }
+
+  static restore(data) {
+    const board = new Board(data.w, data.h, data.points, data.nagent, data.nturn, data.nsec, data.nplayer)
+    return board;
+  }
+
+  toLogJSON() {
+    return { ...this };
   }
 
   getJSON() {
     return {
+      name: this.name,
       w: this.w,
       h: this.h,
       points: this.points,
@@ -39,6 +51,7 @@ class Board {
 
   toJSON() {
     return {
+      name: this.name,
       width: this.w,
       height: this.h,
       nAgent: this.nagent,
@@ -60,6 +73,24 @@ class Agent {
     this.bkx = -1;
     this.bky = -1;
     this.lastaction = null;
+  }
+
+  static restore(data, board, field) {
+    const agent = new Agent(board, field);
+    agent.playerid = data.playerid;
+    agent.x = data.x;
+    agent.y = data.y;
+    agent.bkx = data.bkx;
+    agent.bky = data.bky;
+    agent.lastaction = data.lastaction;
+    return agent;
+  }
+
+  toLogJSON() {
+    const a = { ...this };
+    a.board = null;
+    a.field = null;
+    return a;
   }
 
   isOnBoard() {
@@ -243,6 +274,12 @@ class Field {
     }
   }
 
+  toLogJSON() {
+    const f = { ...this };
+    f.board = null;
+    return f;
+  }
+
   set(x, y, att, playerid = -1) {
     this.field[x + y * this.board.w] = [att, playerid];
   }
@@ -376,13 +413,10 @@ class Game {
     this.nsec = board.nsec;
     this.gaming = false;
     this.ending = false;
-    this.actions = [];
+    //this.actions = [];
     this.field = new Field(board);
     this.log = [];
-    this.startedAtUnixTime = null;
-    this.nextTurnUnixTime = null;
     this.turn = 0;
-    this.changeFuncs = [];
 
     // agents
     this.agents = [];
@@ -395,8 +429,32 @@ class Game {
     }
   }
 
-  dispose() {
-    clearInterval(this.intervalId);
+  static restore(data) {
+    const board = Board.restore(data.board);
+    const game = new Game(board);
+    game.uuid = data.uuid;
+    game.players = data.players.map(p => Player.restore(p));
+    game.gaming = data.gaming;
+    game.ending = data.ending;
+    game.field.field = data.tiled;
+    game.log = data.log;
+    game.turn = data.turn;
+    game.agents = data.players.map((p, i) => {
+      return data.agents[i].map(a => Agent.restore(a, game.board, game.field));
+    });
+    return game;
+  }
+
+  toLogJSON() {
+    const data = { ...this };
+    data.players = data.players.map(p => p.toLogJSON());
+    data.board = data.board.toLogJSON();
+    data.field = data.field.toLogJSON();
+    data.agents = data.agents.map(p => {
+      p = p.map(a => a.toLogJSON());
+      return p;
+    });
+    return data;
   }
 
   attachPlayer(player) {
@@ -405,15 +463,8 @@ class Game {
     player.index = this.players.length;
     this.players.push(player);
     player.setGame(this);
-    if (this.isReady()) {
-      this.startedAtUnixTime = Math.floor(new Date().getTime() / 1000) + 5;
-      this.nextTurnUnixTime = this.startedAtUnixTime + this.nsec;
-      this.updateStatus();
-      this.intervalId = setInterval(() => this.updateStatus(), 50);
-      //console.log("intervalID", this.intervalId);
-    }
 
-    this.changeFuncs.forEach((func) => func());
+    return true;
   }
 
   isReady() {
@@ -434,9 +485,9 @@ class Game {
     this.players.forEach((p) => p.noticeStart());
   }
 
-  setActions(player, actions) {
+  /*setActions(player, actions) {
     this.actions[player] = actions;
-  }
+  }*/
 
   nextTurn() {
     const actions = [];
@@ -467,7 +518,6 @@ class Game {
 
     if (this.turn < this.nturn) {
       this.turn++;
-      this.nextTurnUnixTime = util.nowUnixTime() + this.nsec;
     } else {
       this.gaming = false;
       this.ending = true;
@@ -653,35 +703,6 @@ class Game {
     };
   }
 
-  updateStatus() {
-    let self = this;
-    if (
-      self.isReady() && !self.isGaming() && !self.ending &&
-      (new Date().getTime() > (this.startedAtUnixTime * 1000))
-    ) {
-      self.start();
-      this.changeFuncs.forEach((func) => func());
-    }
-    if (self.isGaming()) {
-      if (new Date().getTime() > (this.nextTurnUnixTime * 1000)) {
-        self.nextTurn();
-        this.changeFuncs.forEach((func) => func());
-      }
-    }
-    if (this.ending) {
-      /*const logData = {
-        gameId: this.uuid,
-        board: this.board,
-        log: this.log,
-      }*/
-
-      Deno.writeTextFileSync(`./log/${this.startedAtUnixTime}_${this.uuid}.log`, JSON.stringify(this, null, 2));
-
-      this.dispose();
-      //this.changeFuncs.forEach(func => func());
-    }
-  }
-
   toJSON() {
     const players = [];
     this.players.forEach((p, i) => {
@@ -717,11 +738,9 @@ class Game {
       gaming: this.gaming,
       ending: this.ending,
       board: board,
-      startedAtUnixTime: this.startedAtUnixTime,
-      nextTurnUnixTime: this.nextTurnUnixTime,
       turn: this.turn,
       totalTurn: this.nturn,
-      tiled: this.field.field,
+      tiled: this.isReady() ? this.field.field : null,
       players: players,
       log: this.log,
     };
@@ -736,6 +755,19 @@ class Player {
     this.game = null;
     this.actions = [];
     this.index = -1;
+  }
+
+  static restore(data) {
+    const player = new Player(data.id, data.spec);
+    player.accessToken = data.accessToken;
+    player.index = data.index;
+    return player;
+  }
+
+  toLogJSON() {
+    const p = { ...this };
+    p.game = null;
+    return p;
   }
 
   setGame(game) {
@@ -763,7 +795,7 @@ class Player {
       userId: this.id,
       spec: this.spec,
       accessToken: this.accessToken,
-      gameId: this.game.uuid,
+      gameId: this.game?.uuid,
       index: this.index,
     };
   }
@@ -783,9 +815,9 @@ class Kakomimasu {
     return this.boards;
   }
 
-  createGame(board) {
+  createGame(...param) {
     //console.log(board);
-    const game = new Game(board);
+    const game = new Game(...param);
     this.games.push(game);
     return game;
   }
@@ -804,4 +836,4 @@ class Kakomimasu {
   }
 }
 
-export { Kakomimasu, Board, Action, Field };
+export { Kakomimasu, Board, Action, Field, Game, Player, Agent };
