@@ -1,7 +1,7 @@
-import { KinoUtil } from "./KinoUtil.js";
 import { KinoAI } from "./KinoAI.js";
 import { A4AI } from "./A4AI.js";
 import { Board, Game, Player } from "./Kakomimasu.js";
+import { KinoUtil } from "./KinoUtil.js";
 
 let ai1 = new KinoAI();
 ai1.bs.naname = false;
@@ -26,7 +26,7 @@ for (let i = 0; i < battleNum; i++) {
   game.attachPlayer(new Player(0));
   game.attachPlayer(new Player(1));
   while (!game.ending) {
-    let info = game.toJSON();
+    let info = KinoUtil.game2Info(game);
     // console.log("game.turn", game.turn)
     const kact = ai1.think(info, 0);
     /*
@@ -34,9 +34,9 @@ for (let i = 0; i < battleNum; i++) {
       console.log("final act", kact);
     }
     */
-    game.players[0].setActions(kact);
+    game.players[0].setActions(KinoUtil.convertCoreAction(kact));
     const eact = ai2.think(info, 1);
-    game.players[1].setActions(eact);
+    game.players[1].setActions(KinoUtil.convertCoreAction(eact));
     game.nextTurn();
     /*
     if (battleNum == 1) {

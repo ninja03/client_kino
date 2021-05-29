@@ -1,7 +1,6 @@
-import { Action, Board, Field, Kakomimasu } from "./Kakomimasu.js";
 import util from "./util.js";
-import {DIR} from "./KakomimasuClient.js";
-import {BeamSearch} from "./BeamSearch.js";
+import { Action, DIR } from "./KakomimasuClient.js";
+import { BeamSearch } from "./BeamSearch.js";
 import { KinoUtil } from "./KinoUtil.js";
 
 class KinoAI {
@@ -47,7 +46,7 @@ class KinoAI {
       if (agent.x === -1) {
         // PUT
         const p = pntall[aid + offset];
-        actions.push(new Action(aid, Action.PUT, p.x, p.y));
+        actions.push(new Action(aid, "PUT", p.x, p.y));
         poschk.push({x: p.x, y: p.y});
       } else {
         if (this.bson) {
@@ -77,11 +76,11 @@ class KinoAI {
             this.sortByPoint(dirall);
             const p = dirall[0];
             if (p.type === 0 || p.pid === -1) {
-              actions.push(new Action(aid, Action.MOVE, p.x, p.y));
+              actions.push(new Action(aid, "MOVE", p.x, p.y));
               poschk.push({x: p.x, y: p.y});
               poschk.push({x: agent.x, y: agent.y}); // 動けなかった時用
             } else {
-              actions.push(new Action(aid, Action.REMOVE, p.x, p.y));
+              actions.push(new Action(aid, "REMOVE", p.x, p.y));
               poschk.push({x: agent.x, y: agent.y});
             }
           } else {
@@ -95,7 +94,7 @@ class KinoAI {
               ) {
                 continue;
               }
-              actions.push(new Action(aid, Action.MOVE, x, y));
+              actions.push(new Action(aid, "MOVE", x, y));
               poschk.push({x, y});
               break;
             }

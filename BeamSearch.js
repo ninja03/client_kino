@@ -1,9 +1,5 @@
-import { KinoAI } from "./KinoAI.js"
-import { A4AI } from "./A4AI.js"
-import { DIR } from "./KakomimasuClient.js";
-import { sleep } from "./client_util.js";
-import {KinoUtil} from "./KinoUtil.js";
-import {Action} from "./Kakomimasu.js";
+import { Action } from "./KakomimasuClient.js";
+import { KinoUtil } from "./KinoUtil.js";
 
 class BeamSearch {
 
@@ -53,11 +49,11 @@ class BeamSearch {
       }
       usedPoints.add(key);
       let state = game.field.field[a.x + a.y * game.board.w];
-      let type = Action.MOVE;
+      let type = "MOVE";
       if (a.x === agent.x && a.y === agent.y) {
-        type = Action.NONE;
+        type = "NONE";
       } else if (state[0] === 1 && state[1] !== pid) {
-        type = Action.REMOVE;
+        type = "REMOVE";
       }
       returnVector.push(new Action(a.aid, type, a.x, a.y));
     }

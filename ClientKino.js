@@ -14,8 +14,7 @@ let ai = new KinoAI();
 
 info = await kc.waitStart(); // スタート時間待ち
 while (info) {
-  let actions = KinoUtil.convertActionC(ai.think(info, pno, 1000));
-  console.log(actions);
+  let actions = ai.think(info, pno, 1000);
   kc.setActions(actions);
   info = await kc.waitNextTurn();
 }

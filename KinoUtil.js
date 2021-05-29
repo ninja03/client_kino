@@ -1,4 +1,4 @@
-import { Game, Action, Board, Field, Kakomimasu} from "./Kakomimasu.js";
+import { Game, Action as CoreAction, Board, Field, Kakomimasu} from "./Kakomimasu.js";
 import {Action as ActionC, KakomimasuClient} from "./KakomimasuClient.js";
 
 class KinoUtil {
@@ -18,6 +18,22 @@ class KinoUtil {
     }
     return actionsc;
   }
+  
+  static convertCoreAction(actions) {
+    let coreActions = [];
+    for (let i = 0; i < actions.length; i++) {
+      const a = actions[i];
+      let type;
+      switch (a.type) {
+        case "PUT":    type = CoreAction.PUT;    break;
+        case "NONE":   type = CoreAction.NONE;   break;
+        case "MOVE":   type = CoreAction.MOVE;   break;
+        case "REMOVE": type = CoreAction.REMOVE; break;
+      }
+      coreActions.push(new CoreAction(a.agentId, type, a.x, a.y));
+    }
+    return coreActions;
+  }
 
   static printArray(array) {
     let buf = "";
@@ -32,6 +48,7 @@ class KinoUtil {
     }
     console.log(buf);
   }
+
   static info2Game(info) {
     const kkmm = new Kakomimasu();
 
@@ -75,6 +92,10 @@ class KinoUtil {
       game.players.push(p);
     }
     return game;
+  }
+
+  static game2Info(game) {
+    return JSON.parse(JSON.stringify(game))
   }
 
   static printBoard(game) {
