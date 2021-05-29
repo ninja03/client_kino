@@ -34,12 +34,24 @@ class KinoUtil {
   }
   static info2Game(info) {
     const kkmm = new Kakomimasu();
-    const game = new Game(info.board);
+
+    let board = new Board(
+      info.board.width,
+      info.board.height,
+      info.board.points,
+      info.board.nAgent,
+      info.board.nTurn,
+      info.board.nSec,
+      info.board.nPlayer
+    );
+    board.name = info.board.name;
+
+    const game = new Game(board);
     game.uuid = info.gameId;
     game.startedAtUnixTime = info.startedAtUnixTime;
     game.nextTurnUnixTime = info.nextTurnUnixTime;
-    game.nturn = info.totalTurn;
     game.turn = info.turn;
+    
     for (let i = 0; i < game.board.w * game.board.h; i++) {
       let type;
       const t = info.tiled[i][0];
